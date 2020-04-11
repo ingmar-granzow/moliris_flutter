@@ -7,6 +7,39 @@ void main() {
   ));
 }
 
+class ItemWidget extends StatefulWidget {
+  @override
+  _ItemWidgetState createState() => _ItemWidgetState();
+}
+
+class _ItemWidgetState extends State<ItemWidget> {
+  String _name = 'name';
+  String _notes = 'note';
+  String _person;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        title: Text(_name),
+        subtitle: Text(
+          _notes
+        ),
+        trailing: (_person != null ? Text(_person) : IconButton(
+          icon: Icon(Icons.add),
+          onPressed: _addPerson,
+        )),
+      ),
+    );
+  }
+
+  void _addPerson() {
+    setState(() {
+      _person = 'Ingmar';
+    });
+  }
+}
+
 class TutorialHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -29,7 +62,7 @@ class TutorialHome extends StatelessWidget {
       ),
       // body is the majority of the screen.
       body: ListView(
-        children: const <Widget>[
+        children: <Widget>[
           Card(
             child: ListTile(
               title: Text('Grill'),
@@ -60,6 +93,7 @@ class TutorialHome extends StatelessWidget {
               trailing: Icon(Icons.add),
             ),
           ),
+          ItemWidget(),
         ],
       ),
       floatingActionButton: FloatingActionButton(
