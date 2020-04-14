@@ -10,6 +10,7 @@ void main() {
 class Item {
   String name, notes, person;
   DateTime date = DateTime.now();
+  var id = UniqueKey();
 
   Item(this.name, this.notes, this.person);
 }
@@ -22,16 +23,15 @@ class Event extends StatefulWidget {
 class _EventState extends State<Event> {
   String _name = 'Himmelfahrtskommando 2020';
   // description
+  // date
   // identifier
-  // _items = List(Item('Grill', 'Kleiner Holzkohlegrill', 'Ingmar'));
-  //var _items = List();
   List<Item> _items = [];
 
   @override
   Widget build(BuildContext context) {
     List<Widget> renderItems = [];
     _items.forEach((item) {
-      renderItems.add(ItemWidget(name: item.name, notes: item.notes));
+      renderItems.add(ItemWidget(key: item.id, name: item.name, notes: item.notes, person: item.person, assignItemCallback: assignItem, deleteItemCallback: deleteItem));
     });
 
     return Scaffold(
@@ -58,7 +58,7 @@ class _EventState extends State<Event> {
         child: Icon(Icons.add),
         onPressed: () {
           _navigateAndAddItem(context);
-      },
+        },
       ),
     );
   }
@@ -77,20 +77,50 @@ class _EventState extends State<Event> {
       });
     }
   }
+
+  assignItem(Key id, String person) {
+    setState(() {
+      var item = _items.firstWhere((i) => i.id == id);
+      item?.person = person;
+    });
+  }
+
+  deleteItem(Key id) {
+    setState(() {
+      _items.removeWhere((i) => i.id == id);
+    });
+  }
 }
 
 class ItemWidget extends StatefulWidget {
-  ItemWidget({Key key, this.name: '', this.notes: ''}) : super(key: key);
+  ItemWidget({Key key, this.name: '', this.notes: '', this.person: '', this.assignItemCallback: null, this.deleteItemCallback: null}) : super(key: key);
 
   final String name;
   final String notes;
+  final String person;
+
+  final assignItemCallback;
+  final deleteItemCallback;
 
   @override
   _ItemWidgetState createState() => _ItemWidgetState();
 }
 
+enum ItemAction { assign, edit, delete }
+
 class _ItemWidgetState extends State<ItemWidget> {
-  String _person;
+  _handleItemAction(ItemAction result) {
+    switch (result) {
+        case ItemAction.assign :
+          widget.assignItemCallback(widget.key, 'Ingmar');
+          break;
+        case ItemAction.edit :
+          break;
+        case ItemAction.delete :
+          widget.deleteItemCallback(widget.key);
+          break;
+      }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,10 +131,35 @@ class _ItemWidgetState extends State<ItemWidget> {
           widget.notes,
           overflow: TextOverflow.ellipsis,
         ),
-        trailing: IconButton(
-          icon: Icon(Icons.edit),
-          onPressed: null,
-        ), // or better PopupMenuButton?
+        trailing: Container(
+          width: 96.0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              Text(
+                widget.person
+              ),
+              PopupMenuButton<ItemAction>(
+                onSelected: _handleItemAction,
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<ItemAction>>[
+                  const PopupMenuItem<ItemAction>(
+                    value: ItemAction.assign,
+                    child: ListTile(leading: Icon(Icons.assignment_ind), title: Text('Akzeptieren')),
+                  ),
+                  const PopupMenuItem<ItemAction>(
+                    value: ItemAction.edit,
+                    child: ListTile(leading: Icon(Icons.edit), title: Text('Ändern')),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem<ItemAction>(
+                    value: ItemAction.delete,
+                    child: ListTile(leading: Icon(Icons.delete), title: Text('Löschen')),
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
       ),
     );
   }
