@@ -127,13 +127,13 @@ class _ItemWidgetState extends State<ItemWidget> {
     return Card(
       child: ListTile(
         title: Text(widget.name),
-        subtitle: Text(
+        subtitle: (widget.notes.isEmpty) ? null : Text(
           widget.notes,
-          overflow: TextOverflow.ellipsis,
         ),
         trailing: Container(
-          width: 96.0,
+          constraints: BoxConstraints(minWidth: 0.0, maxWidth: 128.0),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
               Text(
@@ -144,7 +144,7 @@ class _ItemWidgetState extends State<ItemWidget> {
                 itemBuilder: (BuildContext context) => <PopupMenuEntry<ItemAction>>[
                   const PopupMenuItem<ItemAction>(
                     value: ItemAction.assign,
-                    child: ListTile(leading: Icon(Icons.assignment_ind), title: Text('Akzeptieren')),
+                    child: ListTile(leading: Icon(Icons.assignment_ind), title: Text('Mitbringen')),
                   ),
                   const PopupMenuItem<ItemAction>(
                     value: ItemAction.edit,
