@@ -31,7 +31,7 @@ class _EventState extends State<Event> {
   Widget build(BuildContext context) {
     List<Widget> renderItems = [];
     _items.forEach((item) {
-      renderItems.add(ItemWidget(key: item.id, name: item.name, notes: item.notes, person: item.person, assignItemCallback: assignItem, deleteItemCallback: deleteItem));
+      renderItems.add(ItemWidget(key: item.id, name: item.name, notes: item.notes, person: item.person, assignItemCallback: assignItem, editItemCallback: editItem, deleteItemCallback: deleteItem));
     });
 
     return Scaffold(
@@ -85,6 +85,23 @@ class _EventState extends State<Event> {
     });
   }
 
+  editItem(Key id) async {
+    var item = _items.firstWhere((i) => i.id == id);
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddItem(name: item.name, notes: item.notes, person: item.person)),
+    );
+
+    if (result != null) {
+      setState(() {
+        item.name = result.name;
+        item.notes = result.notes;
+        item.person = result.person;
+      });
+    }
+  }
+
   deleteItem(Key id) {
     setState(() {
       _items.removeWhere((i) => i.id == id);
@@ -93,13 +110,14 @@ class _EventState extends State<Event> {
 }
 
 class ItemWidget extends StatefulWidget {
-  ItemWidget({Key key, this.name: '', this.notes: '', this.person: '', this.assignItemCallback: null, this.deleteItemCallback: null}) : super(key: key);
+  ItemWidget({Key key, this.name: '', this.notes: '', this.person: '', this.assignItemCallback: null, this.editItemCallback: null, this.deleteItemCallback: null}) : super(key: key);
 
   final String name;
   final String notes;
   final String person;
 
   final assignItemCallback;
+  final editItemCallback;
   final deleteItemCallback;
 
   @override
@@ -115,6 +133,7 @@ class _ItemWidgetState extends State<ItemWidget> {
           widget.assignItemCallback(widget.key, 'Ingmar');
           break;
         case ItemAction.edit :
+          widget.editItemCallback(widget.key);
           break;
         case ItemAction.delete :
           widget.deleteItemCallback(widget.key);
@@ -166,6 +185,12 @@ class _ItemWidgetState extends State<ItemWidget> {
 }
 
 class AddItem extends StatefulWidget {
+  AddItem({Key key, this.name: '', this.notes: '', this.person: ''}) : super(key: key);
+
+  final String name;
+  final String notes;
+  final String person;
+
   @override
   _AddItemState createState() => _AddItemState();
 }
@@ -178,6 +203,8 @@ class _AddItemState extends State<AddItem> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isEditMode = !widget.name.isEmpty;
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -187,7 +214,7 @@ class _AddItemState extends State<AddItem> {
             Navigator.pop(context);
           }
         ),
-        title: Text('Neuer Eintrag'),
+        title: Text(isEditMode ? 'Eintrag ändern' : 'Neuer Eintrag'),
       ),
       body: Form(
         key: _formKey,
@@ -197,6 +224,7 @@ class _AddItemState extends State<AddItem> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               TextFormField(
+                initialValue: widget.name,
                 decoration: const InputDecoration(
                   hintText: 'Name',
                 ),
@@ -215,6 +243,7 @@ class _AddItemState extends State<AddItem> {
                 },
               ),
               TextFormField(
+                initialValue: widget.notes,
                 decoration: const InputDecoration(
                   hintText: 'Zusätzliche Notizen (optional)',
                 ),
@@ -228,6 +257,7 @@ class _AddItemState extends State<AddItem> {
                 },
               ),
               TextFormField(
+                initialValue: widget.person,
                 decoration: const InputDecoration(
                   hintText: 'Zugeteilte Person (optional)',
                 ),
@@ -245,7 +275,7 @@ class _AddItemState extends State<AddItem> {
                   onPressed: () {
                     _submitForm();
                   },
-                  child: Text('Hinzufügen'),
+                  child: Text(isEditMode ? 'Speichern' : 'Hinzufügen'),
                 ),
               ),
             ],
