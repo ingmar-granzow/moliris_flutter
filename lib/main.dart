@@ -172,6 +172,8 @@ class AddItem extends StatefulWidget {
 
 class _AddItemState extends State<AddItem> {
   final _formKey = GlobalKey<FormState>();
+  final focusNotes = FocusNode();
+  final focusPerson = FocusNode();
   final Map<String, dynamic> formData = {'name': null, 'notes': null, 'person': null};
 
   @override
@@ -204,6 +206,10 @@ class _AddItemState extends State<AddItem> {
                   }
                   return null;
                 },
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (v) {
+                  FocusScope.of(context).requestFocus(focusNotes);
+                },
                 onSaved: (String value) {
                   formData['name'] = value;
                 },
@@ -212,6 +218,11 @@ class _AddItemState extends State<AddItem> {
                 decoration: const InputDecoration(
                   hintText: 'Zusätzliche Notizen (optional)',
                 ),
+                focusNode: focusNotes,
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (v) {
+                  FocusScope.of(context).requestFocus(focusPerson);
+                },
                 onSaved: (String value) {
                   formData['notes'] = value;
                 },
@@ -220,6 +231,10 @@ class _AddItemState extends State<AddItem> {
                 decoration: const InputDecoration(
                   hintText: 'Zugeteilte Person (optional)',
                 ),
+                focusNode: focusPerson,
+                onFieldSubmitted: (v) {
+                  _submitForm();
+                },
                 onSaved: (String value) {
                   formData['person'] = value;
                 },
