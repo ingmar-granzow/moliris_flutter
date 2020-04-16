@@ -172,17 +172,7 @@ class AddItem extends StatefulWidget {
 
 class _AddItemState extends State<AddItem> {
   final _formKey = GlobalKey<FormState>();
-  final nameController = TextEditingController();
-  final notesController = TextEditingController();
-  final personController = TextEditingController();
-
-  @override
-  void dispose() {
-    nameController.dispose();
-    notesController.dispose();
-    personController.dispose();
-    super.dispose();
-  }
+  final Map<String, dynamic> formData = {'name': null, 'notes': null, 'person': null};
 
   @override
   Widget build(BuildContext context) {
@@ -205,7 +195,6 @@ class _AddItemState extends State<AddItem> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               TextFormField(
-                controller: nameController,
                 decoration: const InputDecoration(
                   hintText: 'Name',
                 ),
@@ -215,26 +204,31 @@ class _AddItemState extends State<AddItem> {
                   }
                   return null;
                 },
+                onSaved: (String value) {
+                  formData['name'] = value;
+                },
               ),
               TextFormField(
-                controller: notesController,
                 decoration: const InputDecoration(
                   hintText: 'Zusätzliche Notizen (optional)',
                 ),
+                onSaved: (String value) {
+                  formData['notes'] = value;
+                },
               ),
               TextFormField(
-                controller: personController,
                 decoration: const InputDecoration(
                   hintText: 'Zugeteilte Person (optional)',
                 ),
+                onSaved: (String value) {
+                  formData['person'] = value;
+                },
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: RaisedButton(
                   onPressed: () {
-                    if (_formKey.currentState.validate()) {
-                      Navigator.pop(context, Item(nameController.text, notesController.text, personController.text));
-                    }
+                    _submitForm();
                   },
                   child: Text('Hinzufügen'),
                 ),
@@ -244,5 +238,12 @@ class _AddItemState extends State<AddItem> {
         ),
       ),
     );
+  }
+
+  void _submitForm() {
+    if (_formKey.currentState.validate()) {
+      _formKey.currentState.save();
+      Navigator.pop(context, Item(formData['name'], formData['notes'], formData['person']));
+    }
   }
 }
