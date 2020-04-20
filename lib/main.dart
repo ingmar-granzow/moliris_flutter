@@ -59,13 +59,23 @@ class _HomeWidgetState extends State<HomeWidget> {
         tooltip: 'Hinzufügen',
         child: Icon(Icons.add),
         onPressed: () {
-          //_navigateAndAddItem(context);
-          setState(() {
-            _events.add(Event(name: 'Himmelfahrtskommando 2020', description: 'Paddeltour'));
-          });
+          _navigateAndAddEvent(context);
         },
       ),
     );
+  }
+
+  _navigateAndAddEvent(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddEventWidget()),
+    );
+
+    if (result != null) {
+      setState(() {
+        _events.add(result);
+      });
+    }
   }
 }
 
@@ -101,8 +111,8 @@ class _EventWidgetState extends State<EventWidget> {
     return Card(
       child: ListTile(
         title: Text(widget.event.name),
-        subtitle: (widget.event.description.isEmpty) ? null : Text(
-          widget.event.description,
+        subtitle: (widget.event.description.isEmpty && widget.event.date == null) ? null : Text(
+          "${widget.event.date?.toString()?.substring(0, 11)}${widget.event.description}",
         ),
         onTap: () {
           _navigateAndShowEvent(context);
@@ -315,6 +325,137 @@ class _ItemWidgetState extends State<ItemWidget> {
         ),
       ),
     );
+  }
+}
+
+/* Add/Edit Event Widget */
+class AddEventWidget extends StatefulWidget {
+  AddEventWidget({Key key, this.name: '', this.description: '', this.date: null}) : super(key: key);
+
+  final String name;
+  final String description;
+  final DateTime date;
+
+  @override
+  _AddEventWidgetState createState() => _AddEventWidgetState();
+}
+
+class _AddEventWidgetState extends State<AddEventWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final focusDescription = FocusNode();
+  final focusDate = FocusNode();
+  final TextEditingController dateCtl = TextEditingController();
+  final Map<String, dynamic> formData = {'name': null, 'description': null, 'date': null};
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isEditMode = !widget.name.isEmpty;
+
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios),
+          tooltip: 'Zurück',
+          onPressed: () {
+            Navigator.pop(context);
+          }
+        ),
+        title: Text(isEditMode ? 'Event ändern' : 'Neues Event'),
+      ),
+      body: Form(
+        key: _formKey,
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              TextFormField(
+                initialValue: widget.name,
+                decoration: const InputDecoration(
+                  hintText: 'Name',
+                ),
+                validator: (value) {
+                  if (value.isEmpty) {
+                    return 'Bitte einen Namen eingeben!';
+                  }
+                  return null;
+                },
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (v) {
+                  FocusScope.of(context).requestFocus(focusDescription);
+                },
+                onSaved: (String value) {
+                  formData['name'] = value;
+                },
+              ),
+              TextFormField(
+                initialValue: widget.description,
+                decoration: const InputDecoration(
+                  hintText: 'Beschreibung (optional)',
+                ),
+                focusNode: focusDescription,
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (v) {
+                  FocusScope.of(context).requestFocus(focusDate);
+                },
+                onSaved: (String value) {
+                  formData['description'] = value;
+                },
+              ),
+              TextFormField(
+                controller: dateCtl,
+                initialValue: widget.date?.toIso8601String(),
+                decoration: const InputDecoration(
+                  hintText: 'Datum (optional)',
+                ),
+                validator: (value) {
+                  if (DateTime.tryParse(value) == null) {
+                    return 'Bitte ein gültiges Datum auswählen!';
+                  }
+                  return null;
+                },
+                focusNode: focusDate,
+                onTap: () async {
+                  FocusScope.of(context).requestFocus(new FocusNode());
+
+                  DateTime selectedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2018),
+                    lastDate: DateTime(2030),
+                  );
+
+                  dateCtl.text = (selectedDate != null) ? selectedDate.toString().substring(0, 10) : '';
+                },
+                onFieldSubmitted: (v) {
+                  _submitForm();
+                },
+                onSaved: (String value) {
+                  formData['date'] = value;
+                },
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: RaisedButton(
+                  onPressed: () {
+                    _submitForm();
+                  },
+                  child: Text(isEditMode ? 'Speichern' : 'Hinzufügen'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _submitForm() {
+    if (_formKey.currentState.validate()) {
+      _formKey.currentState.save();
+      Navigator.pop(context, Event(name: formData['name'], description: formData['description'], date: DateTime.tryParse(formData['date'])));
+    }
   }
 }
 
