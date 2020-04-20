@@ -3,34 +3,167 @@ import 'package:flutter/material.dart';
 void main() {
   runApp(MaterialApp(
     title: 'Moliris Event Planner',
-    home: Event(),
+    home: HomeWidget(),
   ));
 }
 
+class Event {
+  Event({this.name: 'Event', this.description: '', this.date: null});
+
+  var id = UniqueKey();
+  String name, description;
+  DateTime date;
+
+  List<Item> items = [];
+}
+
 class Item {
+  Item(this.name, this.notes, this.person);
+
   String name, notes, person;
   DateTime date = DateTime.now();
   var id = UniqueKey();
-
-  Item(this.name, this.notes, this.person);
 }
 
-class Event extends StatefulWidget {
+/* Home Widget */
+class HomeWidget extends StatefulWidget {
   @override
-  _EventState createState() => _EventState();
+  _HomeWidgetState createState() => _HomeWidgetState();
 }
 
-class _EventState extends State<Event> {
-  String _name = 'Himmelfahrtskommando 2020';
-  // description
-  // date
-  // identifier
-  List<Item> _items = [];
+class _HomeWidgetState extends State<HomeWidget> {
+  List<Event> _events = [];
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> renderEvents = [];
+    _events.forEach((event) {
+      renderEvents.add(EventWidget(key: event.id, event: event));
+    });
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Moliris Event Planner'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.settings),
+            tooltip: 'Einstellungen',
+            onPressed: null,
+          ),
+        ],
+      ),
+      body: ListView(
+        children: renderEvents,
+      ),
+      floatingActionButton: FloatingActionButton(
+        tooltip: 'Hinzufügen',
+        child: Icon(Icons.add),
+        onPressed: () {
+          //_navigateAndAddItem(context);
+          setState(() {
+            _events.add(Event(name: 'Himmelfahrtskommando 2020', description: 'Paddeltour'));
+          });
+        },
+      ),
+    );
+  }
+}
+
+/* Event Widget */
+class EventWidget extends StatefulWidget {
+  EventWidget({Key key, this.event: null}) : super(key: key);
+
+  Event event;
+
+  @override
+  _EventWidgetState createState() => _EventWidgetState();
+}
+
+//enum ItemAction { assign, edit, delete }
+
+class _EventWidgetState extends State<EventWidget> {
+ /* _handleItemAction(ItemAction result) {
+    switch (result) {
+        case ItemAction.assign :
+          widget.assignItemCallback(widget.key, 'Ingmar');
+          break;
+        case ItemAction.edit :
+          widget.editItemCallback(widget.key);
+          break;
+        case ItemAction.delete :
+          widget.deleteItemCallback(widget.key);
+          break;
+      }
+  }*/
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        title: Text(widget.event.name),
+        subtitle: (widget.event.description.isEmpty) ? null : Text(
+          widget.event.description,
+        ),
+        onTap: () {
+          _navigateAndShowEvent(context);
+        },
+        trailing: Container(
+          constraints: BoxConstraints(minWidth: 0.0, maxWidth: 128.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              Text(
+                "${widget.event.items.length}"
+              ),
+/*              PopupMenuButton<ItemAction>(
+                onSelected: _handleItemAction,
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<ItemAction>>[
+                  const PopupMenuItem<ItemAction>(
+                    value: ItemAction.assign,
+                    child: ListTile(leading: Icon(Icons.assignment_ind), title: Text('Mitbringen')),
+                  ),
+                  const PopupMenuItem<ItemAction>(
+                    value: ItemAction.edit,
+                    child: ListTile(leading: Icon(Icons.edit), title: Text('Ändern')),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem<ItemAction>(
+                    value: ItemAction.delete,
+                    child: ListTile(leading: Icon(Icons.delete), title: Text('Löschen')),
+                  ),
+                ],
+              )*/
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  _navigateAndShowEvent(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EventDetailWidget(key: widget.event.id, event: widget.event)),
+    );
+  }
+}
+
+/* Event Detail Widget */
+class EventDetailWidget extends StatefulWidget {
+  EventDetailWidget({Key key, this.event: null}) : super(key: key);
+
+  final Event event;
+
+  @override
+  _EventDetailWidgetState createState() => _EventDetailWidgetState();
+}
+
+class _EventDetailWidgetState extends State<EventDetailWidget> {
+  @override
+  Widget build(BuildContext context) {
     List<Widget> renderItems = [];
-    _items.forEach((item) {
+    widget.event.items.forEach((item) {
       renderItems.add(ItemWidget(key: item.id, name: item.name, notes: item.notes, person: item.person, assignItemCallback: assignItem, editItemCallback: editItem, deleteItemCallback: deleteItem));
     });
 
@@ -38,14 +171,16 @@ class _EventState extends State<Event> {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios),
-          tooltip: 'Back',
-          onPressed: null,
+          tooltip: 'Zurück',
+          onPressed: () {
+            Navigator.pop(context);
+          }
         ),
-        title: Text(_name),
+        title: Text(widget.event.name),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.sort),
-            tooltip: 'Sort',
+            tooltip: 'Sortierung',
             onPressed: null,
           ),
         ],
@@ -54,7 +189,7 @@ class _EventState extends State<Event> {
         children: renderItems,
       ),
       floatingActionButton: FloatingActionButton(
-        tooltip: 'Add',
+        tooltip: 'Hinzufügen',
         child: Icon(Icons.add),
         onPressed: () {
           _navigateAndAddItem(context);
@@ -64,33 +199,31 @@ class _EventState extends State<Event> {
   }
 
   _navigateAndAddItem(BuildContext context) async {
-    // Navigator.push returns a Future that completes after calling
-    // Navigator.pop on the Selection Screen.
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => AddItem()),
+      MaterialPageRoute(builder: (context) => AddItemWidget()),
     );
 
     if (result != null) {
       setState(() {
-        _items.add(result);
+        widget.event.items.add(result);
       });
     }
   }
 
   assignItem(Key id, String person) {
     setState(() {
-      var item = _items.firstWhere((i) => i.id == id);
+      var item = widget.event.items.firstWhere((i) => i.id == id);
       item?.person = person;
     });
   }
 
   editItem(Key id) async {
-    var item = _items.firstWhere((i) => i.id == id);
+    var item = widget.event.items.firstWhere((i) => i.id == id);
 
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => AddItem(name: item.name, notes: item.notes, person: item.person)),
+      MaterialPageRoute(builder: (context) => AddItemWidget(name: item.name, notes: item.notes, person: item.person)),
     );
 
     if (result != null) {
@@ -104,11 +237,12 @@ class _EventState extends State<Event> {
 
   deleteItem(Key id) {
     setState(() {
-      _items.removeWhere((i) => i.id == id);
+      widget.event.items.removeWhere((i) => i.id == id);
     });
   }
 }
 
+/* Item Widget */
 class ItemWidget extends StatefulWidget {
   ItemWidget({Key key, this.name: '', this.notes: '', this.person: '', this.assignItemCallback: null, this.editItemCallback: null, this.deleteItemCallback: null}) : super(key: key);
 
@@ -184,18 +318,19 @@ class _ItemWidgetState extends State<ItemWidget> {
   }
 }
 
-class AddItem extends StatefulWidget {
-  AddItem({Key key, this.name: '', this.notes: '', this.person: ''}) : super(key: key);
+/* Add/Edit Item Widget */
+class AddItemWidget extends StatefulWidget {
+  AddItemWidget({Key key, this.name: '', this.notes: '', this.person: ''}) : super(key: key);
 
   final String name;
   final String notes;
   final String person;
 
   @override
-  _AddItemState createState() => _AddItemState();
+  _AddItemWidgetState createState() => _AddItemWidgetState();
 }
 
-class _AddItemState extends State<AddItem> {
+class _AddItemWidgetState extends State<AddItemWidget> {
   final _formKey = GlobalKey<FormState>();
   final focusNotes = FocusNode();
   final focusPerson = FocusNode();
