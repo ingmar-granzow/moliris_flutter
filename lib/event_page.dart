@@ -5,9 +5,9 @@ import 'item_entry.dart';
 import 'new_item_page.dart';
 
 class EventPage extends StatefulWidget {
-  EventPage({Key key, this.event: null}) : super(key: key);
-
   final Event event;
+
+  EventPage({Key key, this.event: null}) : super(key: key);
 
   @override
   _EventPageState createState() => _EventPageState();

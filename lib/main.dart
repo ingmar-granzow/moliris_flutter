@@ -11,7 +11,6 @@ void main() {
   ));
 }
 
-/* Home Widget */
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
@@ -19,37 +18,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Event> _events = [];
-
-  @override
-  Widget build(BuildContext context) {
-    List<Widget> renderEvents = [];
-    _events.forEach((event) {
-      renderEvents.add(EventCard(key: event.id, event: event, editEventCallback: editEvent, deleteEventCallback: deleteEvent));
-    });
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Moliris Event Planner'),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.settings),
-            tooltip: 'Einstellungen',
-            onPressed: null,
-          ),
-        ],
-      ),
-      body: ListView(
-        children: renderEvents,
-      ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: 'Hinzufügen',
-        child: Icon(Icons.add),
-        onPressed: () {
-          _navigateAndAddEvent(context);
-        },
-      ),
-    );
-  }
 
   _navigateAndAddEvent(BuildContext context) async {
     final result = await Navigator.push(
@@ -85,5 +53,36 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _events.removeWhere((i) => i.id == id);
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> renderEvents = [];
+    _events.forEach((event) {
+      renderEvents.add(EventCard(key: event.id, event: event, editEventCallback: editEvent, deleteEventCallback: deleteEvent));
+    });
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Moliris Event Planner'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.settings),
+            tooltip: 'Einstellungen',
+            onPressed: null,
+          ),
+        ],
+      ),
+      body: ListView(
+        children: renderEvents,
+      ),
+      floatingActionButton: FloatingActionButton(
+        tooltip: 'Hinzufügen',
+        child: Icon(Icons.add),
+        onPressed: () {
+          _navigateAndAddEvent(context);
+        },
+      ),
+    );
   }
 }

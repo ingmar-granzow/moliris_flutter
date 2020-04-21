@@ -3,25 +3,48 @@ import 'package:flutter/material.dart';
 import 'model.dart';
 
 class NewEventPage extends StatefulWidget {
-  NewEventPage({Key key, this.name: '', this.description: '', this.date: null}) : super(key: key);
-
   final String name;
   final String description;
   final DateTime date;
 
+  NewEventPage({Key key, this.name: '', this.description: '', this.date: null})
+    : super(key: key);
+
   @override
-  _NewEventPageState createState() => _NewEventPageState(date);
+  _NewEventPageState createState() => _NewEventPageState();
 }
 
 class _NewEventPageState extends State<NewEventPage> {
   final _formKey = GlobalKey<FormState>();
-  final focusDescription = FocusNode();
-  final focusDate = FocusNode();
-  final TextEditingController dateCtl = TextEditingController();
-  final Map<String, dynamic> formData = {'name': null, 'description': null, 'date': null};
+  final _focusDescription = FocusNode();
+  final _focusDate = FocusNode();
+  final _dateCtl = TextEditingController();
 
-  _NewEventPageState(DateTime initialDate) {
-    dateCtl.text = (initialDate != null) ? initialDate.toString().substring(0, 10) : '';
+  final Map<String, dynamic> formData = {
+    'name': null,
+    'description': null,
+    'date': null
+  };
+
+  void initState() {
+    _dateCtl.text = widget.date?.toString()?.substring(0, 10) ?? '';
+    super.initState();
+  }
+
+  void dispose() {
+    _dateCtl.dispose();
+    super.dispose();
+  }
+
+  void _submitForm() {
+    if (_formKey.currentState.validate()) {
+      _formKey.currentState.save();
+      Navigator.pop(context, Event(
+        formData['name'],
+        formData['description'],
+        DateTime.tryParse(formData['date']))
+      );
+    }
   }
 
   @override
@@ -59,7 +82,7 @@ class _NewEventPageState extends State<NewEventPage> {
                 },
                 textInputAction: TextInputAction.next,
                 onFieldSubmitted: (v) {
-                  FocusScope.of(context).requestFocus(focusDescription);
+                  FocusScope.of(context).requestFocus(_focusDescription);
                 },
                 onSaved: (String value) {
                   formData['name'] = value;
@@ -70,17 +93,17 @@ class _NewEventPageState extends State<NewEventPage> {
                 decoration: const InputDecoration(
                   hintText: 'Beschreibung (optional)',
                 ),
-                focusNode: focusDescription,
+                focusNode: _focusDescription,
                 textInputAction: TextInputAction.next,
                 onFieldSubmitted: (v) {
-                  FocusScope.of(context).requestFocus(focusDate);
+                  FocusScope.of(context).requestFocus(_focusDate);
                 },
                 onSaved: (String value) {
                   formData['description'] = value;
                 },
               ),
               TextFormField(
-                controller: dateCtl,
+                controller: _dateCtl,
                 decoration: const InputDecoration(
                   hintText: 'Datum (optional)',
                 ),
@@ -90,7 +113,7 @@ class _NewEventPageState extends State<NewEventPage> {
                   }
                   return null;
                 },
-                focusNode: focusDate,
+                focusNode: _focusDate,
                 onTap: () async {
                   FocusScope.of(context).requestFocus(new FocusNode());
 
@@ -101,7 +124,7 @@ class _NewEventPageState extends State<NewEventPage> {
                     lastDate: DateTime(2030),
                   );
 
-                  dateCtl.text = (selectedDate != null) ? selectedDate.toString().substring(0, 10) : '';
+                  _dateCtl.text = (selectedDate != null) ? selectedDate.toString().substring(0, 10) : '';
                 },
                 onFieldSubmitted: (v) {
                   _submitForm();
@@ -124,12 +147,5 @@ class _NewEventPageState extends State<NewEventPage> {
         ),
       ),
     );
-  }
-
-  void _submitForm() {
-    if (_formKey.currentState.validate()) {
-      _formKey.currentState.save();
-      Navigator.pop(context, Event(name: formData['name'], description: formData['description'], date: DateTime.tryParse(formData['date'])));
-    }
   }
 }

@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'model.dart';
 
 class NewItemPage extends StatefulWidget {
-  NewItemPage({Key key, this.name: '', this.notes: '', this.person: ''}) : super(key: key);
-
   final String name;
   final String notes;
   final String person;
+
+  NewItemPage({Key key, this.name: '', this.notes: '', this.person: ''})
+    : super(key: key);
 
   @override
   _NewItemPageState createState() => _NewItemPageState();
@@ -17,7 +18,19 @@ class _NewItemPageState extends State<NewItemPage> {
   final _formKey = GlobalKey<FormState>();
   final focusNotes = FocusNode();
   final focusPerson = FocusNode();
-  final Map<String, dynamic> formData = {'name': null, 'notes': null, 'person': null};
+
+  final Map<String, dynamic> formData = {
+    'name': null,
+    'notes': null,
+    'person': null,
+  };
+
+  void _submitForm() {
+    if (_formKey.currentState.validate()) {
+      _formKey.currentState.save();
+      Navigator.pop(context, Item(formData['name'], formData['notes'], formData['person']));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,12 +114,5 @@ class _NewItemPageState extends State<NewItemPage> {
         ),
       ),
     );
-  }
-
-  void _submitForm() {
-    if (_formKey.currentState.validate()) {
-      _formKey.currentState.save();
-      Navigator.pop(context, Item(formData['name'], formData['notes'], formData['person']));
-    }
   }
 }
