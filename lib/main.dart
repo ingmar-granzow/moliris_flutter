@@ -38,7 +38,7 @@ class _HomeWidgetState extends State<HomeWidget> {
   Widget build(BuildContext context) {
     List<Widget> renderEvents = [];
     _events.forEach((event) {
-      renderEvents.add(EventWidget(key: event.id, event: event));
+      renderEvents.add(EventWidget(key: event.id, event: event, editEventCallback: editEvent, deleteEventCallback: deleteEvent));
     });
 
     return Scaffold(
@@ -77,34 +77,57 @@ class _HomeWidgetState extends State<HomeWidget> {
       });
     }
   }
+
+  editEvent(Key id) async {
+    var event = _events.firstWhere((i) => i.id == id);
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddEventWidget(name: event.name, description: event.description, date: event.date)),
+    );
+
+    if (result != null) {
+      setState(() {
+        event.name = result.name;
+        event.description = result.description;
+        event.date = result.date;
+      });
+    }
+  }
+
+  deleteEvent(Key id) {
+    setState(() {
+      _events.removeWhere((i) => i.id == id);
+    });
+  }
 }
 
 /* Event Widget */
 class EventWidget extends StatefulWidget {
-  EventWidget({Key key, this.event: null}) : super(key: key);
+  EventWidget({Key key, this.event: null, this.editEventCallback: null, this.deleteEventCallback: null}) : super(key: key);
 
   Event event;
+
+  final editEventCallback;
+  final deleteEventCallback;
 
   @override
   _EventWidgetState createState() => _EventWidgetState();
 }
 
-//enum ItemAction { assign, edit, delete }
+enum EventAction { edit, delete }
 
 class _EventWidgetState extends State<EventWidget> {
- /* _handleItemAction(ItemAction result) {
+  _handleEventAction(EventAction result) {
     switch (result) {
-        case ItemAction.assign :
-          widget.assignItemCallback(widget.key, 'Ingmar');
+        case EventAction.edit :
+          widget.editEventCallback(widget.key);
           break;
-        case ItemAction.edit :
-          widget.editItemCallback(widget.key);
-          break;
-        case ItemAction.delete :
-          widget.deleteItemCallback(widget.key);
+        case EventAction.delete :
+          widget.deleteEventCallback(widget.key);
           break;
       }
-  }*/
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,40 +135,24 @@ class _EventWidgetState extends State<EventWidget> {
       child: ListTile(
         title: Text(widget.event.name),
         subtitle: (widget.event.description.isEmpty && widget.event.date == null) ? null : Text(
-          "${widget.event.date?.toString()?.substring(0, 11)}${widget.event.description}",
+          "${widget.event.date != null ? widget.event.date.toString().substring(0, 11) : ''}${widget.event.description}",
         ),
         onTap: () {
           _navigateAndShowEvent(context);
         },
-        trailing: Container(
-          constraints: BoxConstraints(minWidth: 0.0, maxWidth: 128.0),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              Text(
-                "${widget.event.items.length}"
-              ),
-/*              PopupMenuButton<ItemAction>(
-                onSelected: _handleItemAction,
-                itemBuilder: (BuildContext context) => <PopupMenuEntry<ItemAction>>[
-                  const PopupMenuItem<ItemAction>(
-                    value: ItemAction.assign,
-                    child: ListTile(leading: Icon(Icons.assignment_ind), title: Text('Mitbringen')),
-                  ),
-                  const PopupMenuItem<ItemAction>(
-                    value: ItemAction.edit,
-                    child: ListTile(leading: Icon(Icons.edit), title: Text('Ändern')),
-                  ),
-                  const PopupMenuDivider(),
-                  const PopupMenuItem<ItemAction>(
-                    value: ItemAction.delete,
-                    child: ListTile(leading: Icon(Icons.delete), title: Text('Löschen')),
-                  ),
-                ],
-              )*/
-            ],
-          ),
+        trailing: PopupMenuButton<EventAction>(
+          onSelected: _handleEventAction,
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<EventAction>>[
+            const PopupMenuItem<EventAction>(
+              value: EventAction.edit,
+              child: ListTile(leading: Icon(Icons.edit), title: Text('Ändern')),
+            ),
+            const PopupMenuDivider(),
+            const PopupMenuItem<EventAction>(
+              value: EventAction.delete,
+              child: ListTile(leading: Icon(Icons.delete), title: Text('Löschen')),
+            ),
+          ]
         ),
       ),
     );
@@ -180,7 +187,7 @@ class _EventDetailWidgetState extends State<EventDetailWidget> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios),
+          icon: Icon(Icons.arrow_back),
           tooltip: 'Zurück',
           onPressed: () {
             Navigator.pop(context);
@@ -337,7 +344,7 @@ class AddEventWidget extends StatefulWidget {
   final DateTime date;
 
   @override
-  _AddEventWidgetState createState() => _AddEventWidgetState();
+  _AddEventWidgetState createState() => _AddEventWidgetState(date);
 }
 
 class _AddEventWidgetState extends State<AddEventWidget> {
@@ -347,15 +354,18 @@ class _AddEventWidgetState extends State<AddEventWidget> {
   final TextEditingController dateCtl = TextEditingController();
   final Map<String, dynamic> formData = {'name': null, 'description': null, 'date': null};
 
+  _AddEventWidgetState(DateTime initialDate) {
+    dateCtl.text = (initialDate != null) ? initialDate.toString().substring(0, 10) : '';
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isEditMode = !widget.name.isEmpty;
 
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios),
+          icon: Icon(Icons.arrow_back),
           tooltip: 'Zurück',
           onPressed: () {
             Navigator.pop(context);
@@ -405,12 +415,11 @@ class _AddEventWidgetState extends State<AddEventWidget> {
               ),
               TextFormField(
                 controller: dateCtl,
-                initialValue: widget.date?.toIso8601String(),
                 decoration: const InputDecoration(
                   hintText: 'Datum (optional)',
                 ),
                 validator: (value) {
-                  if (DateTime.tryParse(value) == null) {
+                  if (value.isNotEmpty && DateTime.tryParse(value) == null) {
                     return 'Bitte ein gültiges Datum auswählen!';
                   }
                   return null;
@@ -484,7 +493,7 @@ class _AddItemWidgetState extends State<AddItemWidget> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios),
+          icon: Icon(Icons.arrow_back),
           tooltip: 'Zurück',
           onPressed: () {
             Navigator.pop(context);
