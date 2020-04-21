@@ -182,6 +182,7 @@ class _EventDetailWidgetState extends State<EventDetailWidget> {
     List<Widget> renderItems = [];
     widget.event.items.forEach((item) {
       renderItems.add(ItemWidget(key: item.id, name: item.name, notes: item.notes, person: item.person, assignItemCallback: assignItem, editItemCallback: editItem, deleteItemCallback: deleteItem));
+      renderItems.add(Divider());
     });
 
     return Scaffold(
@@ -294,43 +295,34 @@ class _ItemWidgetState extends State<ItemWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        title: Text(widget.name),
-        subtitle: (widget.notes.isEmpty) ? null : Text(
-          widget.notes,
-        ),
-        trailing: Container(
-          constraints: BoxConstraints(minWidth: 0.0, maxWidth: 128.0),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              Text(
-                widget.person
-              ),
-              PopupMenuButton<ItemAction>(
-                onSelected: _handleItemAction,
-                itemBuilder: (BuildContext context) => <PopupMenuEntry<ItemAction>>[
-                  const PopupMenuItem<ItemAction>(
-                    value: ItemAction.assign,
-                    child: ListTile(leading: Icon(Icons.assignment_ind), title: Text('Mitbringen')),
-                  ),
-                  const PopupMenuItem<ItemAction>(
-                    value: ItemAction.edit,
-                    child: ListTile(leading: Icon(Icons.edit), title: Text('Ändern')),
-                  ),
-                  const PopupMenuDivider(),
-                  const PopupMenuItem<ItemAction>(
-                    value: ItemAction.delete,
-                    child: ListTile(leading: Icon(Icons.delete), title: Text('Löschen')),
-                  ),
-                ],
-              )
-            ],
-          ),
-        ),
+    return ListTile(
+      title: Text(widget.name),
+      subtitle: (widget.notes.isEmpty) ? null : Text(
+        widget.notes,
       ),
+      leading: CircleAvatar(
+        backgroundColor: Colors.blue.shade800,
+        child: Text('IR'),
+        //radius: 20,
+      ),
+      trailing: PopupMenuButton<ItemAction>(
+        onSelected: _handleItemAction,
+        itemBuilder: (BuildContext context) => <PopupMenuEntry<ItemAction>>[
+          const PopupMenuItem<ItemAction>(
+            value: ItemAction.assign,
+            child: ListTile(leading: Icon(Icons.assignment_ind), title: Text('Mitbringen')),
+          ),
+          const PopupMenuItem<ItemAction>(
+            value: ItemAction.edit,
+            child: ListTile(leading: Icon(Icons.edit), title: Text('Ändern')),
+          ),
+          const PopupMenuDivider(),
+          const PopupMenuItem<ItemAction>(
+            value: ItemAction.delete,
+            child: ListTile(leading: Icon(Icons.delete), title: Text('Löschen')),
+          ),
+        ],
+      )
     );
   }
 }
