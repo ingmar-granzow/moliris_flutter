@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'model.dart';
+import 'package:moliris_flutter/models/event.dart';
+import 'package:moliris_flutter/providers/events_model.dart';
 
 class NewEventPage extends StatefulWidget {
-  final String name;
-  final String description;
-  final DateTime date;
+  final Event event;
 
-  NewEventPage({Key key, this.name: '', this.description: '', this.date: null})
-    : super(key: key);
+  NewEventPage({this.event: null});
 
   @override
   _NewEventPageState createState() => _NewEventPageState();
@@ -26,11 +25,16 @@ class _NewEventPageState extends State<NewEventPage> {
     'date': null
   };
 
+  bool _isEditMode = false;
+
+  @override
   void initState() {
-    _dateCtl.text = widget.date?.toString()?.substring(0, 10) ?? '';
+    _isEditMode = widget.event != null;
+    _dateCtl.text = widget.event?.date?.toString()?.substring(0, 10) ?? '';
     super.initState();
   }
 
+  @override
   void dispose() {
     _dateCtl.dispose();
     super.dispose();
@@ -39,18 +43,22 @@ class _NewEventPageState extends State<NewEventPage> {
   void _submitForm() {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
-      Navigator.pop(context, Event(
-        formData['name'],
-        formData['description'],
-        DateTime.tryParse(formData['date']))
-      );
+
+      if (_isEditMode) {
+        widget.event.name = formData['name'];
+        widget.event.description = formData['description'];
+        widget.event.date = DateTime.tryParse(formData['date']);
+      } else {
+        final Event newEvent = Event(name: formData['name'], description: formData['description'], date: DateTime.tryParse(formData['date']));
+        Provider.of<EventsModel>(context, listen: false).addEvent(newEvent);
+      }
+
+      Navigator.pop(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool isEditMode = !widget.name.isEmpty;
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -60,7 +68,7 @@ class _NewEventPageState extends State<NewEventPage> {
             Navigator.pop(context);
           }
         ),
-        title: Text(isEditMode ? 'Event ändern' : 'Neues Event'),
+        title: Text(_isEditMode ? 'Event ändern' : 'Neues Event'),
       ),
       body: Form(
         key: _formKey,
@@ -70,7 +78,7 @@ class _NewEventPageState extends State<NewEventPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               TextFormField(
-                initialValue: widget.name,
+                initialValue: widget.event?.name,
                 decoration: const InputDecoration(
                   hintText: 'Name',
                 ),
@@ -89,7 +97,7 @@ class _NewEventPageState extends State<NewEventPage> {
                 },
               ),
               TextFormField(
-                initialValue: widget.description,
+                initialValue: widget.event?.description,
                 decoration: const InputDecoration(
                   hintText: 'Beschreibung (optional)',
                 ),
@@ -139,7 +147,7 @@ class _NewEventPageState extends State<NewEventPage> {
                   onPressed: () {
                     _submitForm();
                   },
-                  child: Text(isEditMode ? 'Speichern' : 'Hinzufügen'),
+                  child: Text(_isEditMode ? 'Speichern' : 'Hinzufügen'),
                 ),
               ),
             ],

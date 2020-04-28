@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'package:moliris_flutter/models/event.dart';
+import 'package:moliris_flutter/models/item.dart';
+import 'package:moliris_flutter/providers/events_model.dart';
+import 'package:moliris_flutter/new_item_page.dart';
 
 enum ItemAction {
   assign,
@@ -6,40 +12,26 @@ enum ItemAction {
   delete
 }
 
-class ItemEntry extends StatefulWidget {
-  final String name;
-  final String notes;
-  final String person;
+class ItemEntry extends StatelessWidget {
+  final Event event;
+  final Item item;
 
-  final assignItemCallback;
-  final editItemCallback;
-  final deleteItemCallback;
+  ItemEntry({@required this.event, @required this.item});
 
-  ItemEntry(
-      {Key key,
-      this.name: '',
-      this.notes: '',
-      this.person: '',
-      this.assignItemCallback: null,
-      this.editItemCallback: null,
-      this.deleteItemCallback: null})
-      : super(key: key);
-
-  @override
-  _ItemEntryState createState() => _ItemEntryState();
-}
-
-class _ItemEntryState extends State<ItemEntry> {
-  _handleItemAction(ItemAction result) {
+  _handleItemAction(BuildContext context, ItemAction result) async {
     switch (result) {
       case ItemAction.assign:
-        widget.assignItemCallback(widget.key, 'Ingmar');
+        // TODO: assign
         break;
       case ItemAction.edit:
-        widget.editItemCallback(widget.key);
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => NewItemPage(event: event, item: item)),
+        );
         break;
       case ItemAction.delete:
-        widget.deleteItemCallback(widget.key);
+        Provider.of<EventsModel>(context, listen: false).deleteItem(event, item);
         break;
     }
   }
@@ -47,17 +39,19 @@ class _ItemEntryState extends State<ItemEntry> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text(widget.name),
-      subtitle: (widget.notes.isEmpty)
+      title: Text(item.name),
+      subtitle: (item.notes.isEmpty)
           ? null
-          : Text(widget.notes),
+          : Text(item.notes),
       leading: CircleAvatar(
         backgroundColor: Colors.blue.shade800,
         child: Text('IR'),
         //radius: 20,
       ),
       trailing: PopupMenuButton<ItemAction>(
-        onSelected: _handleItemAction,
+        onSelected: (action) {
+          _handleItemAction(context, action);
+        },
         itemBuilder: (BuildContext context) => <PopupMenuEntry<ItemAction>>[
           const PopupMenuItem<ItemAction>(
             value: ItemAction.assign,

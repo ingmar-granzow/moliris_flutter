@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'model.dart';
+import 'package:moliris_flutter/models/event.dart';
+import 'package:moliris_flutter/models/item.dart';
+import 'package:moliris_flutter/providers/events_model.dart';
 
 class NewItemPage extends StatefulWidget {
-  final String name;
-  final String notes;
-  final String person;
+  final Event event;
+  final Item item;
 
-  NewItemPage({Key key, this.name: '', this.notes: '', this.person: ''})
-    : super(key: key);
+  NewItemPage({@required this.event, this.item = null});
 
   @override
   _NewItemPageState createState() => _NewItemPageState();
@@ -25,17 +26,33 @@ class _NewItemPageState extends State<NewItemPage> {
     'person': null,
   };
 
+  bool _isEditMode = false;
+
+  @override
+  void initState() {
+    _isEditMode = widget.item != null;
+    super.initState();
+  }
+
   void _submitForm() {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
-      Navigator.pop(context, Item(formData['name'], formData['notes'], formData['person']));
+
+      if (_isEditMode) {
+        widget.item.name = formData['name'];
+        widget.item.notes = formData['notes'];
+        widget.item.person = formData['person'];
+      } else {
+        final Item newItem = Item(name: formData['name'], notes: formData['notes'], person: formData['person']);
+        Provider.of<EventsModel>(context, listen: false).addItem(widget.event, newItem);
+      }
+
+      Navigator.pop(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool isEditMode = !widget.name.isEmpty;
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -45,7 +62,7 @@ class _NewItemPageState extends State<NewItemPage> {
             Navigator.pop(context);
           }
         ),
-        title: Text(isEditMode ? 'Eintrag ändern' : 'Neuer Eintrag'),
+        title: Text(_isEditMode ? 'Eintrag ändern' : 'Neuer Eintrag'),
       ),
       body: Form(
         key: _formKey,
@@ -55,7 +72,7 @@ class _NewItemPageState extends State<NewItemPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               TextFormField(
-                initialValue: widget.name,
+                initialValue: widget.item?.name,
                 decoration: const InputDecoration(
                   hintText: 'Name',
                 ),
@@ -74,7 +91,7 @@ class _NewItemPageState extends State<NewItemPage> {
                 },
               ),
               TextFormField(
-                initialValue: widget.notes,
+                initialValue: widget.item?.notes,
                 decoration: const InputDecoration(
                   hintText: 'Zusätzliche Notizen (optional)',
                 ),
@@ -88,7 +105,7 @@ class _NewItemPageState extends State<NewItemPage> {
                 },
               ),
               TextFormField(
-                initialValue: widget.person,
+                initialValue: widget.item?.person,
                 decoration: const InputDecoration(
                   hintText: 'Zugeteilte Person (optional)',
                 ),
@@ -106,7 +123,7 @@ class _NewItemPageState extends State<NewItemPage> {
                   onPressed: () {
                     _submitForm();
                   },
-                  child: Text(isEditMode ? 'Speichern' : 'Hinzufügen'),
+                  child: Text(_isEditMode ? 'Speichern' : 'Hinzufügen'),
                 ),
               ),
             ],

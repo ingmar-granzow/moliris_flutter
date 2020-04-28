@@ -1,67 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'model.dart';
-import 'event_card.dart';
-import 'new_event_page.dart';
+import 'package:moliris_flutter/models/event.dart';
+import 'package:moliris_flutter/providers/events_model.dart';
+import 'package:moliris_flutter/widgets/event_list.dart';
+import 'package:moliris_flutter/widgets/event_card.dart';
+import 'package:moliris_flutter/new_event_page.dart';
 
-void main() {
-  runApp(MaterialApp(
-    title: 'Moliris Event Planner',
-    home: HomePage(),
-  ));
-}
+void main() => runApp(MolirisApp());
 
-class HomePage extends StatefulWidget {
+class MolirisApp extends StatelessWidget {
   @override
-  _HomePageState createState() => _HomePageState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => EventsModel(),
+      child: MaterialApp(
+        title: 'Moliris Event Planner',
+        home: HomeScreen(),
+      ),
+    );
+  }
 }
 
-class _HomePageState extends State<HomePage> {
-  List<Event> _events = [];
-
+class HomeScreen extends StatelessWidget {
   _navigateAndAddEvent(BuildContext context) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => NewEventPage()),
     );
-
-    if (result != null) {
-      setState(() {
-        _events.add(result);
-      });
-    }
-  }
-
-  editEvent(Key id) async {
-    var event = _events.firstWhere((i) => i.id == id);
-
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => NewEventPage(name: event.name, description: event.description, date: event.date)),
-    );
-
-    if (result != null) {
-      setState(() {
-        event.name = result.name;
-        event.description = result.description;
-        event.date = result.date;
-      });
-    }
-  }
-
-  deleteEvent(Key id) {
-    setState(() {
-      _events.removeWhere((i) => i.id == id);
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> renderEvents = [];
-    _events.forEach((event) {
-      renderEvents.add(EventCard(key: event.id, event: event, editEventCallback: editEvent, deleteEventCallback: deleteEvent));
-    });
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Moliris Event Planner'),
@@ -73,8 +43,10 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: ListView(
-        children: renderEvents,
+      body: Consumer<EventsModel>(
+        builder: (context, events, child) => EventList(
+          events: events.allEvents,
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'Hinzufügen',

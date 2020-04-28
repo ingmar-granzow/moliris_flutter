@@ -1,47 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'model.dart';
-import 'event_page.dart';
+import 'package:moliris_flutter/models/event.dart';
+import 'package:moliris_flutter/providers/events_model.dart';
+import 'package:moliris_flutter/event_page.dart';
+import 'package:moliris_flutter/new_event_page.dart';
 
 enum EventAction {
   edit,
   delete,
 }
 
-class EventCard extends StatefulWidget {
-  Event event;
+class EventCard extends StatelessWidget {
+  final Event event;
 
-  final editEventCallback;
-  final deleteEventCallback;
+  EventCard({@required this.event});
 
-  EventCard(
-      {Key key,
-      this.event: null,
-      this.editEventCallback: null,
-      this.deleteEventCallback: null})
-      : super(key: key);
-
-  @override
-  _EventCardState createState() => _EventCardState();
-}
-
-class _EventCardState extends State<EventCard> {
   _navigateAndShowEvent(BuildContext context) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) =>
-          EventPage(key: widget.event.id, event: widget.event)),
+          EventPage(event: event)),
     );
   }
 
-  _handleEventAction(EventAction result) {
-    switch (result) {
+  _handleEventAction(BuildContext context, EventAction action) async {
+    switch (action) {
       case EventAction.edit:
-        widget.editEventCallback(widget.key);
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => NewEventPage(event: event),
+          ),
+        );
         break;
       case EventAction.delete:
-        widget.deleteEventCallback(widget.key);
+        Provider.of<EventsModel>(context, listen: false).deleteEvent(event);
         break;
     }
   }
@@ -50,18 +45,20 @@ class _EventCardState extends State<EventCard> {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        title: Text(widget.event.name),
+        title: Text(event.name),
         subtitle:
-          (widget.event.description.isEmpty && widget.event.date == null)
+          (event.description.isEmpty && event.date == null)
               ? null
               : Text(
-                  "${widget.event.date != null ? widget.event.date.toString().substring(0, 11) : ''}${widget.event.description}",
+                  "${event.date != null ? event.date.toString().substring(0, 11) : ''}${event.description}",
                 ),
         onTap: () {
           _navigateAndShowEvent(context);
         },
         trailing: PopupMenuButton<EventAction>(
-          onSelected: _handleEventAction,
+          onSelected: (action) {
+            _handleEventAction(context, action);
+          },
           itemBuilder: (BuildContext context) => <PopupMenuEntry<EventAction>>[
             const PopupMenuItem<EventAction>(
               value: EventAction.edit,
