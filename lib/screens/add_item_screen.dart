@@ -2,42 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:moliris_flutter/models/event.dart';
+import 'package:moliris_flutter/models/item.dart';
 import 'package:moliris_flutter/providers/events_model.dart';
 
-class NewEventPage extends StatefulWidget {
+class AddItemScreen extends StatefulWidget {
   final Event event;
+  final Item item;
 
-  NewEventPage({this.event: null});
+  AddItemScreen({@required this.event, this.item = null});
 
   @override
-  _NewEventPageState createState() => _NewEventPageState();
+  _AddItemScreenState createState() => _AddItemScreenState();
 }
 
-class _NewEventPageState extends State<NewEventPage> {
+class _AddItemScreenState extends State<AddItemScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _focusDescription = FocusNode();
-  final _focusDate = FocusNode();
-  final _dateCtl = TextEditingController();
+  final focusNotes = FocusNode();
+  final focusPerson = FocusNode();
 
   final Map<String, dynamic> formData = {
     'name': null,
-    'description': null,
-    'date': null
+    'notes': null,
+    'person': null,
   };
 
   bool _isEditMode = false;
 
   @override
   void initState() {
-    _isEditMode = widget.event != null;
-    _dateCtl.text = widget.event?.date?.toString()?.substring(0, 10) ?? '';
+    _isEditMode = widget.item != null;
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    _dateCtl.dispose();
-    super.dispose();
   }
 
   void _submitForm() {
@@ -45,12 +39,12 @@ class _NewEventPageState extends State<NewEventPage> {
       _formKey.currentState.save();
 
       if (_isEditMode) {
-        widget.event.name = formData['name'];
-        widget.event.description = formData['description'];
-        widget.event.date = DateTime.tryParse(formData['date']);
+        widget.item.name = formData['name'];
+        widget.item.notes = formData['notes'];
+        widget.item.person = formData['person'];
       } else {
-        final Event newEvent = Event(name: formData['name'], description: formData['description'], date: DateTime.tryParse(formData['date']));
-        Provider.of<EventsModel>(context, listen: false).addEvent(newEvent);
+        final Item newItem = Item(name: formData['name'], notes: formData['notes'], person: formData['person']);
+        Provider.of<EventsModel>(context, listen: false).addItem(widget.event, newItem);
       }
 
       Navigator.pop(context);
@@ -68,7 +62,7 @@ class _NewEventPageState extends State<NewEventPage> {
             Navigator.pop(context);
           }
         ),
-        title: Text(_isEditMode ? 'Event ändern' : 'Neues Event'),
+        title: Text(_isEditMode ? 'Eintrag ändern' : 'Neuer Eintrag'),
       ),
       body: Form(
         key: _formKey,
@@ -78,7 +72,7 @@ class _NewEventPageState extends State<NewEventPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               TextFormField(
-                initialValue: widget.event?.name,
+                initialValue: widget.item?.name,
                 decoration: const InputDecoration(
                   hintText: 'Name',
                 ),
@@ -90,55 +84,37 @@ class _NewEventPageState extends State<NewEventPage> {
                 },
                 textInputAction: TextInputAction.next,
                 onFieldSubmitted: (v) {
-                  FocusScope.of(context).requestFocus(_focusDescription);
+                  FocusScope.of(context).requestFocus(focusNotes);
                 },
                 onSaved: (String value) {
                   formData['name'] = value;
                 },
               ),
               TextFormField(
-                initialValue: widget.event?.description,
+                initialValue: widget.item?.notes,
                 decoration: const InputDecoration(
-                  hintText: 'Beschreibung (optional)',
+                  hintText: 'Zusätzliche Notizen (optional)',
                 ),
-                focusNode: _focusDescription,
+                focusNode: focusNotes,
                 textInputAction: TextInputAction.next,
                 onFieldSubmitted: (v) {
-                  FocusScope.of(context).requestFocus(_focusDate);
+                  FocusScope.of(context).requestFocus(focusPerson);
                 },
                 onSaved: (String value) {
-                  formData['description'] = value;
+                  formData['notes'] = value;
                 },
               ),
               TextFormField(
-                controller: _dateCtl,
+                initialValue: widget.item?.person,
                 decoration: const InputDecoration(
-                  hintText: 'Datum (optional)',
+                  hintText: 'Zugeteilte Person (optional)',
                 ),
-                validator: (value) {
-                  if (value.isNotEmpty && DateTime.tryParse(value) == null) {
-                    return 'Bitte ein gültiges Datum auswählen!';
-                  }
-                  return null;
-                },
-                focusNode: _focusDate,
-                onTap: () async {
-                  FocusScope.of(context).requestFocus(new FocusNode());
-
-                  DateTime selectedDate = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(2018),
-                    lastDate: DateTime(2030),
-                  );
-
-                  _dateCtl.text = (selectedDate != null) ? selectedDate.toString().substring(0, 10) : '';
-                },
+                focusNode: focusPerson,
                 onFieldSubmitted: (v) {
                   _submitForm();
                 },
                 onSaved: (String value) {
-                  formData['date'] = value;
+                  formData['person'] = value;
                 },
               ),
               Padding(

@@ -4,12 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:moliris_flutter/models/event.dart';
 import 'package:moliris_flutter/providers/events_model.dart';
 import 'package:moliris_flutter/widgets/item_list.dart';
-import 'package:moliris_flutter/new_item_page.dart';
+import 'package:moliris_flutter/screens/add_item_screen.dart';
 
-class EventPage extends StatelessWidget {
+class EventScreen extends StatelessWidget {
   final Event event;
 
-  EventPage({@required this.event});
+  EventScreen({@required this.event});
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +50,7 @@ class EventPage extends StatelessWidget {
   _navigateAndAddItem(BuildContext context) async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => NewItemPage(event: event)),
+      MaterialPageRoute(builder: (context) => AddItemScreen(event: event)),
     );
   }
 }

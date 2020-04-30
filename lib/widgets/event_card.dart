@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 
 import 'package:moliris_flutter/models/event.dart';
 import 'package:moliris_flutter/providers/events_model.dart';
-import 'package:moliris_flutter/event_page.dart';
-import 'package:moliris_flutter/new_event_page.dart';
+import 'package:moliris_flutter/screens/event_screen.dart';
+import 'package:moliris_flutter/screens/add_event_screen.dart';
 
 enum EventAction {
   edit,
@@ -21,7 +21,7 @@ class EventCard extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) =>
-          EventPage(event: event)),
+          EventScreen(event: event)),
     );
   }
 
@@ -31,7 +31,7 @@ class EventCard extends StatelessWidget {
         final result = await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => NewEventPage(event: event),
+            builder: (context) => AddEventScreen(event: event),
           ),
         );
         break;

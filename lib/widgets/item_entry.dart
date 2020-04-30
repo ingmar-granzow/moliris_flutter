@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:moliris_flutter/models/event.dart';
 import 'package:moliris_flutter/models/item.dart';
 import 'package:moliris_flutter/providers/events_model.dart';
-import 'package:moliris_flutter/new_item_page.dart';
+import 'package:moliris_flutter/screens/add_item_screen.dart';
 
 enum ItemAction {
   assign,
@@ -27,7 +27,7 @@ class ItemEntry extends StatelessWidget {
         final result = await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => NewItemPage(event: event, item: item)),
+            builder: (context) => AddItemScreen(event: event, item: item)),
         );
         break;
       case ItemAction.delete:
