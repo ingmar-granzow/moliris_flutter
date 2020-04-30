@@ -48,8 +48,13 @@ class _AddEventScreenState extends State<AddEventScreen> {
         widget.event.name = formData['name'];
         widget.event.description = formData['description'];
         widget.event.date = DateTime.tryParse(formData['date']);
+        Provider.of<EventsModel>(context, listen: false).updateEvent(widget.event);
       } else {
-        final Event newEvent = Event(name: formData['name'], description: formData['description'], date: DateTime.tryParse(formData['date']));
+        final Event newEvent = Event(
+          name: formData['name'],
+          description: formData['description'],
+          date: DateTime.tryParse(formData['date']),
+        );
         Provider.of<EventsModel>(context, listen: false).addEvent(newEvent);
       }
 
