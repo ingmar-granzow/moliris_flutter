@@ -28,6 +28,7 @@ class EventsModel extends ChangeNotifier {
         SelectResult.property('name'),
         SelectResult.property('description'),
         SelectResult.property('date'),
+        SelectResult.property('items'),
       ])
       .from('events')
       .where(Expression.property('type').equalTo(Expression.string('event')));
@@ -49,6 +50,7 @@ class EventsModel extends ChangeNotifier {
       name: result.getString(key: 'name'),
       description: result.getString(key: 'description'),
       date: DateTime.tryParse(result.getString(key: 'date') ?? ''),
+      items: result.getList(key: 'items').map((e) => Item.fromMap(e)).toList().cast<Item>(),
     )).toList().cast<Event>();
 
     notifyListeners();
@@ -61,7 +63,8 @@ class EventsModel extends ChangeNotifier {
       .setString('type', 'event')
       .setString('name', event.name)
       .setString('description', event?.description)
-      .setString('date', event.date?.toIso8601String());
+      .setString('date', event.date?.toIso8601String())
+      .setList('items', event.items);
 
     try {
       await database.saveDocument(mutableDoc);
@@ -92,16 +95,48 @@ class EventsModel extends ChangeNotifier {
   }
 
   UnmodifiableListView<Item> getAllItems(Event event) {
-    return UnmodifiableListView(event?.items);
-  } // necessary?
+    var _event = _events.firstWhere((element) => element == event);
+    return UnmodifiableListView(_event.items);
+  }
 
-  void addItem(Event event, Item item) {
-    event?.items.add(item);
-    notifyListeners();
+  void addItem(Event event, Item item) async {
+    var _event = _events.firstWhere((element) => element == event);
+    _event.items.add(item);
+    _persistItems(_event);
+  }
+
+  void updateItem(Event event, Item item) async {
+    var _event = _events.firstWhere((element) => element == event);
+    var index = _event.items.indexWhere((element) => element == item);
+
+    if (index != -1) {
+      _event.items[index] = item;
+      _persistItems(_event);
+    }
   }
 
   void deleteItem(Event event, Item item) {
-    event?.items.remove(item);
-    notifyListeners();
+    var _event = _events.firstWhere((element) => element == event);
+    var index = _event.items.indexWhere((element) => element == item);
+
+    if (index != -1) {
+      _event.items.removeAt(index);
+      _persistItems(_event);
+    }
+  }
+
+  void _persistItems(Event event) async {
+    var mutableDoc = (await database.document(event.id))?.toMutable();
+
+    if (mutableDoc != null) {
+      var itemList = event.items.map((item) => item.asMap()).toList();
+      mutableDoc.setList('items', itemList);
+
+      try {
+        await database.saveDocument(mutableDoc);
+      } on PlatformException {
+        print('Error saving document');
+      }
+    }
   }
 }

@@ -42,8 +42,13 @@ class _AddItemScreenState extends State<AddItemScreen> {
         widget.item.name = formData['name'];
         widget.item.notes = formData['notes'];
         widget.item.person = formData['person'];
+        Provider.of<EventsModel>(context, listen: false).updateItem(widget.event, widget.item);
       } else {
-        final Item newItem = Item(name: formData['name'], notes: formData['notes'], person: formData['person']);
+        final Item newItem = Item(
+          name: formData['name'],
+          notes: formData['notes'],
+          person: formData['person']
+        );
         Provider.of<EventsModel>(context, listen: false).addItem(widget.event, newItem);
       }
 
