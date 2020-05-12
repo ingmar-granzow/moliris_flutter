@@ -1,0 +1,42 @@
+{
+  "logging": {
+    "console": {
+        "enabled": true,
+        "log_level": "info",
+        "log_keys": ["HTTP"]
+    }
+  },
+  "databases": {
+    "moliris": {
+      "server": "http://couchbase-server:8091",
+      "bucket": "moliris",
+      "username": "sync-gateway",
+      "password": "NuheWihh6~Zimg",
+      "users": { "GUEST": { "disabled": false, "admin_channels": ["*"] } },
+      "import_docs": "continuous",
+      "enable_shared_bucket_access": true,
+      "num_index_replicas": 0,
+      "revs_limit": 20,
+      "sync": `
+        function (doc, oldDoc) {
+          if (doc._deleted) {
+            // allow all deletions
+            return;
+          }
+
+          if (!doc.type) {
+            throw({forbidden: "Missing required properties"});
+          }
+
+          if (doc.type == "event") {
+            if (!doc.name || !doc.items) {
+              throw({forbidden: "Missing required properties for event"});
+            }
+
+            channel("events");
+          }
+        }
+      `
+    }
+  }
+}
