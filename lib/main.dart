@@ -15,6 +15,8 @@ class MolirisApp extends StatefulWidget {
 
 class _MolirisAppState extends State<MolirisApp> {
   Database database;
+  Replicator replicator;
+  ListenerToken _listenerToken;
 
   @override
   void initState() {
@@ -28,6 +30,25 @@ class _MolirisAppState extends State<MolirisApp> {
     } on PlatformException {
       print('Error initializing database');
     }
+
+    ReplicatorConfiguration config =
+        ReplicatorConfiguration(database, "ws://10.0.2.2:4984/moliris");
+    config.replicatorType = ReplicatorType.pushAndPull;
+    config.continuous = true;
+
+    //config.authenticator = BasicAuthenticator("foo", "bar");
+
+    replicator = Replicator(config);
+
+    _listenerToken = replicator.addChangeListener((ReplicatorChange event) {
+      if (event.status.error != null) {
+        print("Error: " + event.status.error);
+      }
+
+      print(event.status.activity.toString());
+    });
+
+    await replicator.start();
   }
 
   @override
@@ -43,9 +64,9 @@ class _MolirisAppState extends State<MolirisApp> {
 
   @override
   void dispose() async {
-    // await replicator?.removeChangeListener(_listenerToken);
-    // await replicator?.stop();
-    // await replicator?.dispose();
+    await replicator?.removeChangeListener(_listenerToken);
+    await replicator?.stop();
+    await replicator?.dispose();
     await database?.close();
 
     super.dispose();
