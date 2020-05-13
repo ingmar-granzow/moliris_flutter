@@ -3,9 +3,17 @@ import 'package:provider/provider.dart';
 
 import 'package:moliris_flutter/providers/events_model.dart';
 import 'package:moliris_flutter/screens/add_event_screen.dart';
+import 'package:moliris_flutter/screens/preferences_screen.dart';
 import 'package:moliris_flutter/widgets/event_list.dart';
 
 class HomeScreen extends StatelessWidget {
+  _navigateToPreferences(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => PreferencesScreen()),
+    );
+  }
+
   _navigateAndAddEvent(BuildContext context) async {
     final result = await Navigator.push(
       context,
@@ -22,7 +30,9 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.settings),
             tooltip: 'Einstellungen',
-            onPressed: null,
+            onPressed: () {
+              _navigateToPreferences(context);
+            },
           ),
         ],
       ),
