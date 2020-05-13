@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:couchbase_lite/couchbase_lite.dart';
 
 import 'package:moliris_flutter/providers/events_model.dart';
+import 'package:moliris_flutter/providers/preferences_model.dart';
 import 'package:moliris_flutter/screens/home_screen.dart';
 
 void main() => runApp(MolirisApp());
@@ -53,8 +54,16 @@ class _MolirisAppState extends State<MolirisApp> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => EventsModel(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => EventsModel()
+        ),
+        Provider<PreferencesModel>(
+          create: (context) => PreferencesModel(),
+          lazy: false,
+        ),
+      ],
       child: MaterialApp(
         title: 'Moliris Event Planner',
         home: HomeScreen(),

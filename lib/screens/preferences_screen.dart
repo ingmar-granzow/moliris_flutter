@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:moliris_flutter/providers/preferences_model.dart';
+
 class PreferencesScreen extends StatefulWidget {
   @override
   _PreferencesScreenState createState() => _PreferencesScreenState();
@@ -17,8 +19,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
 
-      // widget.event.name = formData['name'];
-      // Provider.of<EventsModel>(context, listen: false).updateEvent(widget.event);
+      Provider.of<PreferencesModel>(context, listen: false).update(formData['user_name']);
 
       Navigator.pop(context);
     }
@@ -59,7 +60,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
 
   Widget _createUserNameField() {
     return TextFormField(
-      initialValue: '',
+      initialValue: Provider.of<PreferencesModel>(context, listen: false).user_name,
       decoration: const InputDecoration(
         hintText: 'Anzeigename',
       ),
