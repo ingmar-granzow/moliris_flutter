@@ -43,8 +43,6 @@ class EventsModel extends ChangeNotifier {
   }
 
   void _changeListener(change) {
-    print('change listener called with ${change.results.allResults().length} results');
-
     _events = change.results.map((result) => Event(
       id: result.getString(key: 'id'),
       name: result.getString(key: 'name'),
